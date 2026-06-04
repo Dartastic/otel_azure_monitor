@@ -2,7 +2,6 @@
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
 import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
-import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_azure_monitor_suppression.dart';
 
@@ -52,51 +51,67 @@ Future<T> tracedAzureMonitor<T>({
   final t = tracer ?? OTel.tracerProvider().getTracer('otel_azure_monitor');
   final span = t.startSpan('azuremonitor $operation', kind: SpanKind.client);
   try {
-    span.setStringAttribute('azure.service', 'monitor');
+    span.addAttributes(
+        OTel.attributes([OTel.attributeString('azure.service', 'monitor')]));
     final r = await invoke();
     final res = r.result;
     if (res != null) {
       if (res.subscriptionId != null) {
-        span.setStringAttribute('azure.subscription.id', res.subscriptionId!);
+        span.addAttributes(OTel.attributes([
+          OTel.attributeString('azure.subscription.id', res.subscriptionId!)
+        ]));
       }
       if (res.resourceGroup != null) {
-        span.setStringAttribute('azure.resource_group', res.resourceGroup!);
+        span.addAttributes(OTel.attributes([
+          OTel.attributeString('azure.resource_group', res.resourceGroup!)
+        ]));
       }
       if (res.workspace != null) {
-        span.setStringAttribute('azure.monitor.workspace', res.workspace!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('azure.monitor.workspace', res.workspace!)]));
       }
       if (res.queryText != null) {
-        span.setStringAttribute('azure.monitor.query', res.queryText!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('azure.monitor.query', res.queryText!)]));
       }
       if (res.alertName != null) {
-        span.setStringAttribute('azure.monitor.alert.name', res.alertName!);
+        span.addAttributes(OTel.attributes([
+          OTel.attributeString('azure.monitor.alert.name', res.alertName!)
+        ]));
       }
       if (res.alertSeverity != null) {
-        span.setStringAttribute(
-          'azure.monitor.alert.severity',
-          res.alertSeverity!,
-        );
+        span.addAttributes(OTel.attributes([
+          OTel.attributeString(
+            'azure.monitor.alert.severity',
+            res.alertSeverity!,
+          )
+        ]));
       }
       if (res.metricName != null) {
-        span.setStringAttribute('metric.name', res.metricName!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('metric.name', res.metricName!)]));
       }
       if (res.region != null) {
-        span.setStringAttribute('cloud.region', res.region!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('cloud.region', res.region!)]));
       }
       if (res.statusCode != null) {
-        span.setIntAttribute('http.response.status_code', res.statusCode!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeInt('http.response.status_code', res.statusCode!)]));
       }
       if (res.errorCode != null) {
-        span.setStringAttribute('azuremonitor.error.code', res.errorCode!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('azuremonitor.error.code', res.errorCode!)]));
       }
-      final fail =
-          res.errorCode != null ||
+      final fail = res.errorCode != null ||
           (res.statusCode != null && res.statusCode! >= 400);
       if (fail) {
-        span.setStringAttribute(
-          ErrorResource.errorType.key,
-          res.errorCode ?? 'monitor.error',
-        );
+        span.addAttributes(OTel.attributes([
+          OTel.attributeString(
+            ErrorResource.errorType.key,
+            res.errorCode ?? 'monitor.error',
+          )
+        ]));
         span.setStatus(SpanStatusCode.Error, res.errorMessage);
       }
     }
